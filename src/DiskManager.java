@@ -214,7 +214,10 @@ public class DiskManager implements Serializable{
             JSONArray list = etat.getJSONArray("pagesLibres");
             this.pagesLibres.clear();
             for (int j = 0; j < list.length(); j++) {
-                this.pagesLibres.add((PageId)list.get(j));
+                JSONObject freePageJSON = list.getJSONObject(j);
+                int fileIdx = freePageJSON.getInt("fileIdx");
+                int pageIdx = freePageJSON.getInt("pageIdx");
+                this.pagesLibres.add(new PageId (fileIdx, pageIdx));
             }
         }   catch(IOException e){
             System.out.println(e.getMessage());

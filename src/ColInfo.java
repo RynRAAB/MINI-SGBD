@@ -32,4 +32,8 @@ public class ColInfo{
         this.taille = taille;
     }
 
+    @Override
+    public String toString()    {
+        return this.nom + ":" + this.type + ((this.type.equals("CHAR") || this.type.equals("VARCHAR")) ? ("("+this.taille+")") : "");
+    }
 }

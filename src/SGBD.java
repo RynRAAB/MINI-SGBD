@@ -1,0 +1,238 @@
+import java.io.IOException;
+import java.util.Scanner;
+
+public class SGBD {
+    
+    private DBConfig dbConfig;
+    private DiskManager diskManager;
+    private BufferManager bufferManager;
+    private DBManager dbManager;
+
+    public SGBD(DBConfig dbconfig)  {
+        this.dbConfig = dbconfig;
+        this.diskManager = new DiskManager(dbconfig);
+        this.bufferManager = new BufferManager(this.dbConfig, this.diskManager);
+        this.dbManager = new DBManager(dbconfig, diskManager, bufferManager);
+        this.diskManager.loadState();
+        this.dbManager.LoadState();
+    }
+
+    // Getters & Setters
+    public DBConfig getDbConfig() {
+        return dbConfig;
+    }
+    public void setDbConfig(DBConfig dbConfig) {
+        this.dbConfig = dbConfig;
+    }
+
+    public DiskManager getDiskManager() {
+        return diskManager;
+    }
+    public void setDiskManager(DiskManager diskManager) {
+        this.diskManager = diskManager;
+    }
+
+    public BufferManager getBufferManager() {
+        return bufferManager;
+    }
+    public void setBufferManager(BufferManager bufferManager) {
+        this.bufferManager = bufferManager;
+    }
+
+    public DBManager getDbManager() {
+        return dbManager;
+    }
+    public void setDbManager(DBManager dbManager) {
+        this.dbManager = dbManager;
+    }
+
+    public void Run()     {
+        System.out.println("********************    Bienvenue dans votre SGBD   ********************");
+        String texteCommande;
+        boolean quit = false;
+        Scanner sc = new Scanner(System.in);
+       
+        while (!quit) {
+            System.out.println("oué ??  ");
+            texteCommande = sc.nextLine();
+            texteCommande = texteCommande.replaceAll("\\s+", " ").trim();
+            String start;
+            pr:
+            if (true){
+                if (texteCommande.toUpperCase().startsWith("CREATE DATABASE "))   {
+                    try {
+                        ProcessCreateDataBaseCommand(texteCommande);
+                    }   catch (IOException e)   {
+                        System.out.println(e.getMessage());
+                    } 
+                    break pr;
+                }
+                if (texteCommande.toUpperCase().startsWith("CREATE TABLE ")) {
+                    try {
+                        ProcessCreateTableCommand(texteCommande);
+                    }   catch (IOException e)   {
+                        System.out.println(e.getMessage());
+                    } 
+                    break pr;
+                }
+                if (texteCommande.toUpperCase().startsWith("SET DATABASE "))     {
+                    try {
+                        ProcessSetDataBaseCommand(texteCommande);
+                    }   catch (IOException e)   {
+                        System.out.println(e.getMessage());
+                    }
+                    break pr;
+                }
+                if (texteCommande.toUpperCase().equals("LIST TABLES"))  {
+                    ProcessListTablesCommand(texteCommande);
+                    break pr;
+                }
+                if (texteCommande.toUpperCase().equals("LIST DATABASES"))   {
+                    ProcessListDataBasesCommand(texteCommande);
+                    break pr;
+                }
+                if (texteCommande.toUpperCase().startsWith("DROP TABLE "))   {
+                    try {
+                        ProcessDropTableCommand(texteCommande);
+                    }   catch (IOException e)   {
+                        System.out.println(e.getMessage());
+                    }
+                    break pr;
+                }
+                if (texteCommande.toUpperCase().equals("DROP TABLES"))   {
+                    ProcessDropTablesCommand(texteCommande);
+                    break pr;
+                }
+                if (texteCommande.toUpperCase().equals("DROP DATABASES"))   {
+                    ProcessDropDataBasesCommand(texteCommande);
+                    break pr;
+                }
+                if (texteCommande.toUpperCase().startsWith("DROP DATABASE "))    {
+                    try {
+                        ProcessDropDataBaseCommand(texteCommande);
+                    }   catch (IOException e)   {
+                        System.out.println(e.getMessage());
+                    }
+                    break pr;
+                }
+                if (texteCommande.toUpperCase().equals("QUIT")) {
+                    ProcessQuitCommand(texteCommande);
+                    quit = true;
+                    break;
+                }
+                System.err.println("Erreur : Erreur de syntaxe dans " + texteCommande + " !!");
+            }
+        }
+            System.out.println("********************    Au revoir !   ********************");    
+        sc.close();
+    }
+
+    public void ProcessCreateDataBaseCommand(String texteCommande) throws IOException {
+        String [] splitCommand = texteCommande.split(" ");
+        if (splitCommand.length==3) {
+            this.dbManager.CreateDatabase(splitCommand[2].toUpperCase());
+        }   else {
+            throw new IOException("Erreur de syntaxe dans la commande CREATE DATABASE. Syntaxe à suivre : \"CREATE DATABASE X\" où X est remplacé par le nom de la nouvelle base de données.");
+        }
+    }
+
+    public void ProcessCreateTableCommand(String texteCommande)  throws IOException {
+        String [] splitCommand = texteCommande.split(" ");
+        if (splitCommand.length==4) {
+            String tableName = splitCommand[2].toUpperCase();
+            String[] colonnesEntry = splitCommand[3].substring(1, splitCommand[3].length()-1).split(",");
+            ColInfo[] colonnes = new ColInfo[colonnesEntry.length];
+            for (int i=0; i<colonnesEntry.length; i++)  {
+                String[] nameAndType = colonnesEntry[i].split(":");
+                if (nameAndType.length==2){
+                    String nom = nameAndType[0].toLowerCase();
+                    int taille = 1;
+                    String type = null;
+                    if (nameAndType[1].toUpperCase().startsWith("CHAR(") || nameAndType[1].toUpperCase().startsWith("VARCHAR("))    {
+                        type = nameAndType[1].substring(0, nameAndType[1].indexOf("(")).toUpperCase();
+                        if (nameAndType[1].indexOf("(")==-1 || nameAndType[1].indexOf(")")==-1)  {
+                            throw new IOException("Erreur de syntaxe dans " + nameAndType[1] + " ! précisez la taille du " + type + " !!");
+                        }
+                        try{
+                            taille = Integer.parseInt( nameAndType[1].substring( nameAndType[1].indexOf("(")+1 , nameAndType[1].indexOf(")") ) );
+                        } catch(NumberFormatException e)    {
+                            System.err.println("Erreur de syntaxe dans " + nameAndType[1] + " ! la partie entre parenthèses doit correspondre à la taille du "+ type+ " et doit être un entier.");
+                        }
+                    }   else if (nameAndType[1].toUpperCase().equals("INT"))    {
+                        type = "INT";
+                    }   else if (nameAndType[1].toUpperCase().equals("REAL"))   {
+                        type = "REAL";
+                    }   else{
+                        throw new IOException("Erreur de syntaxe : le type \"" + nameAndType[1] + "\" n'est pas géré par notre SGBD");
+                    }
+                    colonnes[i] = new ColInfo(nom, type, taille);
+                }  else {
+                    throw new IOException("Erreur de syntaxe dans \"" + colonnesEntry[i] + "\"");
+                }
+            }
+            Relation table = new Relation(tableName, colonnesEntry.length, colonnes, null, this.diskManager, this.bufferManager);
+            table.initializeHeaderPage();
+            this.dbManager.AddTableToCurrentDatabase(table);
+        }   else {
+            throw new IOException("Erreur de syntaxe dans la commande CREATE TABLE. Syntaxe à suivre : \"CREATE TABLE X (C1:T1,C2:T2(4),C3:T3)\" \noù X est remplacé par le nom de la nouvelle table, C1 le nom du premier attribut, T1 son type (INT,REAL,CHAR(n),VARCHAR(n))...");
+        }
+    }
+
+    public void ProcessSetDataBaseCommand(String texteCommande)  throws IOException    {
+        String [] splitCommand = texteCommande.split(" ");
+        if (splitCommand.length==3) {
+            this.dbManager.SetCurrentDatabase(splitCommand[2].toUpperCase());
+        }   else {
+            throw new IOException("Erreur de syntaxe dans la commande SET DATABASE. Syntaxe à suivre : \"SET DATABASE X\" où X est remplacé par le nom d'une base de données existante.");
+        }
+    }
+
+    public void ProcessListTablesCommand(String texteCommande)      {
+        this.dbManager.ListTablesInCurrentDatabase();
+    }
+
+    public void ProcessListDataBasesCommand(String texteCommande)   {
+        this.dbManager.ListDatabases();
+    }
+
+    public void ProcessDropTableCommand (String texteCommande) throws IOException {
+        String [] splitCommand = texteCommande.split(" ");
+        if (splitCommand.length==3) {
+            this.dbManager.RemoveTableFromCurrentDatabase(splitCommand[2].toUpperCase());
+        }   else {
+            throw new IOException("Erreur de syntaxe dans la commande DROP TABLE. Syntaxe à suivre : \"DROP TABLE X\" où X est remplacé par le nom de la table à supprimer.");
+        }
+    }
+
+    public void ProcessDropTablesCommand (String texteCommande)     {
+        this.dbManager.RemoveTablesFromCurrentDatabase();
+    }
+
+    public void ProcessDropDataBasesCommand (String texteCommande)  {
+        this.dbManager.RemoveDatabases();
+    }
+
+    public void ProcessDropDataBaseCommand (String texteCommande) throws IOException   {
+        String [] splitCommand = texteCommande.split(" ");
+        if (splitCommand.length==3) {
+            this.dbManager.RemoveDatabase(splitCommand[2].toUpperCase());
+        }   else {
+            throw new IOException("Erreur de syntaxe dans la commande DROP DATABASE. Syntaxe à suivre : \"DROP DATABASE X\" où X est remplacé par le nom de la base de données à supprimer.");
+        }
+    }
+
+    public void ProcessQuitCommand (String texteCommande)   {
+        this.bufferManager.flushBuffers();
+        this.diskManager.saveState();
+        this.dbManager.SaveState();
+    }
+
+
+    public static void main (String [] args)    {
+        DBConfig config = DBConfig.loadDBConfig("src/config.json");
+        SGBD mySGBD = new SGBD (config);
+        mySGBD.Run();
+    }
+}
+
+    

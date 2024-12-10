@@ -31,4 +31,5 @@ echo Exécution du programme...
 :: java -cp "%bin_dir%;%lib_dir%" Main Fait windows
 :: java -cp "%bin_dir%;%lib_dir%" DiskManagerTests Fait windows
 :: java -cp "%bin_dir%;%lib_dir%" BufferManagerTests Fait windows
-java -cp "%bin_dir%;%lib_dir%" RelationTests Fait windows
+:: java -cp "%bin_dir%;%lib_dir%" RelationTests Fait windows
+java -cp "%bin_dir%;%lib_dir%" SGBD Fait windows

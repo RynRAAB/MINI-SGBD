@@ -464,4 +464,19 @@ public class Relation {
         return allRecords;
     }
 
+    @Override
+    public String toString()    {
+        StringBuilder result = new StringBuilder();
+        result.append(this.nom);
+        result.append(" (");
+        for (int i=0; i<this.nbColonnes; i+=1)  {
+            result.append(this.colonnes[i]);
+            if (i != nbColonnes-1)    {
+                result.append(",");
+            }   else{
+                result.append(")\n");
+            }
+        }
+        return result.toString();
+    }
 }
