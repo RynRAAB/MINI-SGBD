@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -205,18 +207,19 @@ public class DBManager {
                 JSONObject relationsJSON = new JSONObject();
                 for (Relation table : db.getTables())   {
                     String tableName = table.getNom();
-                    JSONObject relationJSON = new JSONObject();
+                    JSONObject relationJSON = new JSONObject(new LinkedHashMap<>());
                     relationJSON.put("numberOfColumns", table.getNbColonnes());
                     JSONObject headerPageIdJSON = new JSONObject();
                     headerPageIdJSON.put("fileIdx",table.getHeaderPageId().getFileIdx());
                     headerPageIdJSON.put("pageIdx",table.getHeaderPageId().getPageIdx());
                     relationJSON.put("headerPageId",  headerPageIdJSON);
-                    JSONObject columnsJSON = new JSONObject();
+                    JSONArray columnsJSON = new JSONArray();
                     for (ColInfo colonne : table.getColonnes()) {
                         JSONObject columnJSON = new JSONObject();
+                        columnJSON.put("name", colonne.getNom());
                         columnJSON.put("type", colonne.getType());
                         columnJSON.put("size", colonne.getTaille());
-                        columnsJSON.put(colonne.getNom(), columnJSON);
+                        columnsJSON.put(columnJSON);
                     }
                     relationJSON.put("columns", columnsJSON);
                     relationsJSON.put(tableName, relationJSON);
@@ -268,14 +271,14 @@ public class DBManager {
                     int fileIdx = headerPageIdJSON.getInt("fileIdx");
                     int pageIdx = headerPageIdJSON.getInt("pageIdx");
                     PageId headerPageId = new PageId(fileIdx, pageIdx);
-                    JSONObject columnsJSON = relationJSON.getJSONObject("columns");
-                    ColInfo[] colonnes = new ColInfo[nbColonnes];   int i=0;
-                    for (String columnName : columnsJSON.keySet())     {
-                        JSONObject columnJSON = columnsJSON.getJSONObject(columnName);
+                    JSONArray columnsJSON = relationJSON.getJSONArray("columns");
+                    ColInfo[] colonnes = new ColInfo[nbColonnes];  
+                    for (int i=0; i<columnsJSON.length(); i+=1)     {
+                        JSONObject columnJSON = columnsJSON.getJSONObject(i);
+                        String columnName = columnJSON.getString("name"); 
                         String columnType = columnJSON.getString("type");
                         int columnSize = columnJSON.getInt("size");
                         colonnes[i] = new ColInfo(columnName, columnType, columnSize);
-                        i+=1;
                     }
                     Relation table = new Relation(relationName, nbColonnes, colonnes, headerPageId, this.diskManager,  this.bufferManager);
                     this.AddTableToCurrentDatabase(table);

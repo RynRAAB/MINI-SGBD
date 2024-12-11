@@ -1,5 +1,10 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Scanner;
+
 
 public class SGBD {
     
@@ -115,6 +120,22 @@ public class SGBD {
                     }
                     break pr;
                 }
+                if (texteCommande.toUpperCase().startsWith("INSERT INTO ")) {
+                    try    {
+                        ProcessInsertIntoCommand(texteCommande);
+                    }   catch (IOException e)   {
+                        System.out.println(e.getMessage());
+                    }
+                    break pr;
+                }
+                if (texteCommande.toUpperCase().startsWith("BULKINSERT INTO ")) {
+                    try{
+                        ProcessBulkinsertIntoCommand(texteCommande);
+                    }   catch (IOException e)   {
+                        System.out.println(e.getMessage());
+                    }
+                    break pr;
+                }
                 if (texteCommande.toUpperCase().equals("QUIT")) {
                     ProcessQuitCommand(texteCommande);
                     quit = true;
@@ -137,6 +158,9 @@ public class SGBD {
     }
 
     public void ProcessCreateTableCommand(String texteCommande)  throws IOException {
+        if (this.dbManager.getActiveDB()==null) {
+            throw new IOException("Erreur : Aucune base de données active.");
+        }
         String [] splitCommand = texteCommande.split(" ");
         if (splitCommand.length==4) {
             String tableName = splitCommand[2].toUpperCase();
@@ -192,7 +216,7 @@ public class SGBD {
     }
 
     public void ProcessListDataBasesCommand(String texteCommande)   {
-        this.dbManager.ListDatabases();
+        this.dbManager.ListDatabasesNames();
     }
 
     public void ProcessDropTableCommand (String texteCommande) throws IOException {
@@ -218,6 +242,118 @@ public class SGBD {
             this.dbManager.RemoveDatabase(splitCommand[2].toUpperCase());
         }   else {
             throw new IOException("Erreur de syntaxe dans la commande DROP DATABASE. Syntaxe à suivre : \"DROP DATABASE X\" où X est remplacé par le nom de la base de données à supprimer.");
+        }
+    }
+
+    public void ProcessInsertIntoCommand (String texteCommande) throws IOException {
+        if (this.dbManager.getActiveDB() == null)   {
+            throw new IOException("Erreur : Aucune base de données active.");
+        }
+        String [] splitCommand = texteCommande.split(" ");
+        if (splitCommand.length == 5 && splitCommand[3].toUpperCase().equals("VALUES"))   {
+            String tableName = splitCommand[2].toUpperCase();
+            // Vérifions si la table existe bien dans la bdd active
+            if (! this.dbManager.getActiveDB().containsTable(tableName))    {
+                throw new IOException("Erreur : la table (" + tableName + ") n'existe pas dans la base de données actuellement active {" + this.dbManager.getActiveDB().getNom() + "}");
+            }
+            Relation table = this.dbManager.getActiveDB().getTable(tableName);
+            String [] values = splitCommand[4].substring(1, splitCommand[4].length()-1).split(",");
+            if (table.getNbColonnes() == values.length)    {
+                String [] recordValues = new String[values.length];
+                for (int i=0; i<values.length;  i+=1)   {
+                    String type = table.getColonnes()[i].getType();
+                    // On vérifie si les entrées correspondent aux types prédéfinies dans la relation 
+                    switch (type)   {
+                        case "INT" : 
+                            try {
+                                int myInt = Integer.parseInt(values[i]);
+                            }   catch (NumberFormatException e) {
+                                throw new IOException("Erreur : l'attribut n°" + (i+1) + " devrait être un INT.");
+                            }
+                            recordValues[i] = values[i];
+                            break;
+                        case "REAL" :
+                            try {
+                                double myFloat = Double.parseDouble(values[i]);
+                            }   catch(NumberFormatException e)  {
+                                throw new IOException("Erreur : l'attribut n°" + (i+1) + " devrait être un REAL.");
+                            }
+                            recordValues[i] = values[i];
+                            break;
+                        case "CHAR" :
+                            if (values[i].startsWith("\"") && values[i].endsWith("\"")) {
+                                int taille = table.getColonnes()[i].getTaille();
+                                if (values[i].length()==taille+2) {
+                                    recordValues[i] = values[i].substring(1, values[i].length()-1);
+                                }   else{
+                                    throw new IOException("Erreur : l'attribut "+ values[i] + " doit être de taille " + taille + " !");
+                                }
+                            }   else{
+                                throw new IOException("Erreur de syntaxe : un attribut de type CHAR doit être mis entre guillemets");
+                            }
+                            break;
+                        case "VARCHAR" :
+                            if (values[i].startsWith("\"") && values[i].endsWith("\"")) {
+                                int taille = table.getColonnes()[i].getTaille();
+                                if (values[i].length()<=taille+2) {
+                                    recordValues[i] = values[i].substring(1, values[i].length()-1);
+                                }   else{
+                                    throw new IOException("Erreur : l'attribut "+ values[i] + " ne doit pas dépasser la taille " + taille + " !");
+                                }
+                            }   else{
+                                throw new IOException("Erreur de syntaxe : un attribut de type VARCHAR doit être mis entre guillemets");
+                            }
+                            break;
+                        default: 
+                            break;
+                    }
+                }
+                Record recordToInsert = new Record(recordValues);
+                RecordId insertion = table.InsertRecord(recordToInsert);
+                if (insertion!=null)    {
+                    System.out.println("Insertion d'un record effectuée avec succées dans la table (" + tableName + ")");
+                }   else    {
+                    throw new IOException("Insertion échouée ! Erreur produite lors de l'insertion du record.");
+                }
+            }   else {
+                throw new IOException("Erreur : Le nombre d'attributs en entrée ne correspond pas au nombre de colonnes dans la table (" + tableName + ")");
+            }
+        }   else    {
+            throw new IOException("Erreur de syntaxe dans la commande INSERT INTO. Syntaxe à suivre : \"INSERT INTO X VALUES (V1,V2,V3)\" \noù X est remplacé par le nom de la table; et V1,V2,V3 correspondent aux valeurs d'un n-uplet de la table, qui seront listés dans le même ordre choisi lors de la création de la table.");
+        }
+    }
+
+    public void ProcessBulkinsertIntoCommand (String texteCommande) throws IOException {
+        if (this.dbManager.getActiveDB() == null)   {
+            throw new IOException("Erreur : Aucune base de données active.");
+        }
+        String[] splitCommand = texteCommande.split(" ");
+        if (splitCommand.length==4) {
+            String tableName = splitCommand[2].toUpperCase();
+            if (! this.dbManager.getActiveDB().containsTable(tableName))  {
+                throw new IOException("Erreur : la table (" + tableName + ") n'existe pas dans la base de données actuellement active {" + this.dbManager.getActiveDB().getNom() + "}");
+            }
+            if (! splitCommand[3].endsWith(".csv"))   {
+                throw new IOException("Erreur : le fichier en entrée doit être un fichier CSV d'extention .csv");
+            }
+            File file = new File ("./src/data/"+splitCommand[3]);
+            if (!file.exists())  {
+                throw new IOException("Erreur : le fichier en entrée n'existe pas dans l'arborescence \"./src/data\" de ce projet.");
+            }
+            try {
+                FileReader fileReader = new FileReader(file);
+                BufferedReader buffer = new BufferedReader(fileReader);
+                String line = null;
+                while ((line=buffer.readLine()) != null)    {
+                    String query = "INSERT INTO " + tableName + " VALUES (" + line + ")";
+                    this.ProcessInsertIntoCommand(query); 
+                }
+                buffer.close();
+            }   catch(FileNotFoundException e)  {
+                throw new IOException("Erreur : tentative d'ouverture du fichier ("+ splitCommand[3] + ") échouée !");
+            }
+        }   else    {
+            throw new IOException("Erreur de syntaxe dans la commande BULKINSERT INTO. Syntaxe à suivre : \"BULKINSERT INTO X Y.csv\noù X est remplacé par le nom de la table; et Y correspondant au nom du fichier qui contient les records, le fichier doit être placé dans le dossier \"/src/data\" du projet.");
         }
     }
 

@@ -1,4 +1,37 @@
-{"dataBases": {"AZUL": {
-    "tables": {},
-    "numberOfTables": 0
+{"dataBases": {"CASINO": {
+    "tables": {"CHEAT_CODE": {
+        "numberOfColumns": 5,
+        "columns": [
+            {
+                "size": 1,
+                "name": "c1",
+                "type": "INT"
+            },
+            {
+                "size": 1,
+                "name": "c2",
+                "type": "REAL"
+            },
+            {
+                "size": 1,
+                "name": "c3",
+                "type": "INT"
+            },
+            {
+                "size": 1,
+                "name": "c4",
+                "type": "INT"
+            },
+            {
+                "size": 1,
+                "name": "c5",
+                "type": "INT"
+            }
+        ],
+        "headerPageId": {
+            "pageIdx": 0,
+            "fileIdx": 0
+        }
+    }},
+    "numberOfTables": 1
 }}}
