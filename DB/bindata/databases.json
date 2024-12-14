@@ -1,31 +1,26 @@
-{"dataBases": {"CASINO": {
-    "tables": {"CHEAT_CODE": {
-        "numberOfColumns": 5,
+{"dataBases": {"UNIVERSITE": {
+    "tables": {"ETUDIANT": {
+        "numberOfColumns": 4,
         "columns": [
             {
+                "size": 20,
+                "name": "nom",
+                "type": "VARCHAR"
+            },
+            {
+                "size": 20,
+                "name": "prenom",
+                "type": "VARCHAR"
+            },
+            {
                 "size": 1,
-                "name": "c1",
+                "name": "age",
                 "type": "INT"
             },
             {
                 "size": 1,
-                "name": "c2",
+                "name": "note",
                 "type": "REAL"
-            },
-            {
-                "size": 1,
-                "name": "c3",
-                "type": "INT"
-            },
-            {
-                "size": 1,
-                "name": "c4",
-                "type": "INT"
-            },
-            {
-                "size": 1,
-                "name": "c5",
-                "type": "INT"
             }
         ],
         "headerPageId": {

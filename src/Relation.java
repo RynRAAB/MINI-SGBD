@@ -12,6 +12,14 @@ public class Relation {
     private DiskManager diskManager;
     private BufferManager bufferManager;
    
+    public String getIndexAndTypeOfAttribute(String attributeName) {
+        for (int i=0; i<this.nbColonnes; i+=1)  {
+            if (this.colonnes[i].getNom().equals(attributeName))   {
+                return i+";"+this.colonnes[i].getType();
+            }
+        }
+        return "";
+    }
 
     public Relation(String nom, int nbColonnes, ColInfo[] colonnes, PageId headerPageId, DiskManager diskManager, BufferManager bufferManager) {
         this.nom = nom;
@@ -379,14 +387,14 @@ public class Relation {
                     recordSize += Integer.BYTES;
                     break ;
                 case "REAL" :
-                    recordSize += Integer.BYTES;
+                    recordSize += Double.BYTES;
                     break ;
                 case "CHAR" :
                     recordSize += (Character.BYTES * c.getTaille());
                     break ;
                 case "VARCHAR" :
-                    recordSize += (Character.BYTES * record.getAttributs()[index].length());
-                    break ;
+                    recordSize += (Character.BYTES * c.getTaille());
+                    break; 
             }
             index+=1;
         }

@@ -27,10 +27,9 @@ public class Record {
     @Override
     public String toString()    {
         StringBuilder content = new StringBuilder();
-        content.append("[");
         for (int i=0; i<this.colonnes.length; i+=1) {
             content.append(this.colonnes[i]);
-            content.append((i==this.colonnes.length-1) ? "]" : " | ");
+            content.append((i==this.colonnes.length-1) ? " ." : " ; ");
         }
         return content.toString();
     }
