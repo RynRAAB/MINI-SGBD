@@ -54,16 +54,20 @@ public class SGBD {
     }
 
     public void Run()     {
-        System.out.println("********************    Bienvenue dans votre SGBD   ********************");
+        System.out.println("\n****************************************    NOTRE SGBD - OUR DBMS   ****************************************");
+        System.out.println("****************************************     BIENVENU  - WELECOME   ****************************************");
+
         String texteCommande;
         boolean quit = false;
         Scanner sc = new Scanner(System.in);
        
         while (!quit) {
-            System.out.println("oué ??  ");
+            System.out.println("");
+            System.out.print("Entrez votre requête ici >>  ");
             texteCommande = sc.nextLine();
             texteCommande = texteCommande.replaceAll("\\s+", " ").trim();
             String start;
+            System.out.println("");
             pr:
             if (true){
                 if (texteCommande.toUpperCase().startsWith("CREATE DATABASE "))   {
@@ -154,7 +158,7 @@ public class SGBD {
                 System.err.println("Erreur : Erreur de syntaxe dans " + texteCommande + " !!");
             }
         }
-            System.out.println("********************    Au revoir !   ********************");    
+        System.out.println("****************************************    AU REVOIR - GOODBYE   ****************************************");    
         sc.close();
     }
 
@@ -378,6 +382,10 @@ public class SGBD {
         if (repartition1.length<5  ||  !repartition1[2].equals("FROM"))   {
             throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT. La commande doit obligatoirement contenir les mots \"SELECT et FROM\" en troisième position.");
         }
+        if (repartition1[4].contains(","))  {
+            this.processSelectJointureCommand(textecommande);
+            return;
+        }
         String tableName = repartition1[3];
         if (! this.dbManager.getActiveDB().containsTable(tableName))  {
             throw new IOException("Erreur : la table (" + tableName + ") n'existe pas dans la base de données actuellement active {" + this.dbManager.getActiveDB().getNom() + "}");
@@ -472,14 +480,15 @@ public class SGBD {
                         }   catch (NumberFormatException e) {
                                 throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", Pensez à lire la documentation.");
                         }
-                    }   else {
+                    }   else if (indexAndType.endsWith("REAL"))    {
                         try {
                             Double.parseDouble(valeurConstante);
                         }   catch (NumberFormatException e) {
                                 throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", Pensez à lire la documentation.");
                         }
                     }
-                    Condition condition = new Condition(valeurConstante, Integer.parseInt(indexAndType.split(";")[0]), operateur, indexAndType.split(";")[1]);
+                    try{Integer.parseInt(indexAndType.split(";")[0]);} catch(NumberFormatException e){throw new IOException("Erreur de syntaxe : l'attribut " + repartition6[1] + " n'existe pas dans la table (" + tableName + ") !");}
+                    Condition condition = new Condition(valeurConstante,   Integer.parseInt(indexAndType.split(";")[0]) , operateur, indexAndType.split(";")[1]);
                     conditions.add(condition);
 
                 }   else if (!repartition4[i].toUpperCase().equals("AND"))  {
@@ -494,8 +503,164 @@ public class SGBD {
     }
 
 
+
+    public void processSelectJointureCommand(String texteCommande)    throws IOException{
+        String [] repartition1 = texteCommande.toUpperCase().split(" ");
+        if (repartition1.length<8  ||  !repartition1[2].equals("FROM")  ||  !repartition1[6].equals("WHERE"))   {  
+            throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT. La commande doit obligatoirement contenir les mots \"SELECT et FROM et Where\" en première, troisième et septième position.");
+        }
+        String table1Name = repartition1[3];
+        if (! this.dbManager.getActiveDB().containsTable(table1Name))  {
+            throw new IOException("Erreur : la table (" + table1Name + ") n'existe pas dans la base de données actuellement active {" + this.dbManager.getActiveDB().getNom() + "}");
+        }
+        Relation table1 = this.dbManager.getActiveDB().getTable(table1Name);
+        String[] repartition2 = repartition1[4].split(",");
+        if (repartition2.length!=2) {
+            throw new IOException("Erreur : Erreur de syntaxe dans la partie \""+ repartition1[4] + "\" !!");
+        }
+        String table1Alias = repartition2[0];
+        String table2Name = repartition2[1];
+        if (! this.dbManager.getActiveDB().containsTable(table2Name))  {
+            throw new IOException("Erreur : la table (" + table2Name + ") n'existe pas dans la base de données actuellement active {" + this.dbManager.getActiveDB().getNom() + "}");
+        }
+        Relation table2 = this.dbManager.getActiveDB().getTable(table2Name);
+        String table2Alias = repartition1[5];
+
+        ArrayList<Condition> conditions = new ArrayList<>();
+
+        if (!repartition1[6].equals("WHERE"))   {
+            throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT, la position 6 de cette commande est résérvée pour le terme WHERE pour exprimer une condition.");
+        }
+        String where = texteCommande.split(" ")[6];
+        String [] repartition4 = texteCommande.split(where);
+        if (repartition4.length!=2)    {
+            throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT, la requête doit contenir au minimum une seule condition après \"WHERE\" !");
+        }
+        repartition4 = repartition4[1].trim().split(" ");
+        ArrayList<Integer> indexsConditions = new ArrayList<>();
+        for (int i=0; i<repartition4.length; i+=1)     {
+            if (i%2==0) {
+                String conditionString = repartition4[i];
+                String operateur = "";
+                if (conditionString.contains("!=")) {
+                    operateur = "!=";
+                }   else if (conditionString.contains("<="))  {
+                    operateur = "<=";
+                }   else if (conditionString.contains(">="))    {
+                    operateur = ">=";
+                }   else if (conditionString.contains("=")) {
+                    operateur = "=";
+                }   else if (conditionString.contains("<")) {
+                    operateur = "<";
+                }   else if (conditionString.contains(">")) {
+                    operateur = ">";
+                }
+                if (operateur.equals(""))  {
+                    throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", les seuls opérateurs autorisés sont :  =  !=  <  >  <=  >=");
+                }
+                String [] repartition5 = conditionString.split(operateur);
+                if (repartition5.length!=2) {
+                    throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", veuillez regarder la documentation..!");
+                }
+                
+                String [] repartition6 = repartition5[0].toUpperCase().split("\\.");
+                if (repartition6.length!=2)   {
+                    throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", veuillez regarder la documentation..!");
+                }
+                if (!repartition6[0].equals(table1Alias) && !repartition6[0].equals(table2Alias))    {
+                    throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", Pensez à garder le même alias pour la table durant toute la requête.");
+                }
+                String indexAndType = null;
+                if (repartition6[0].equals(table1Alias))
+                    indexAndType = table1.getIndexAndTypeOfAttribute(repartition6[1].toLowerCase());
+                else 
+                    indexAndType = table2.getIndexAndTypeOfAttribute(repartition6[1].toLowerCase());
+                 
+                repartition6 = repartition5[1].toUpperCase().split("\\.");
+                if (repartition6.length!=2)   {
+                    throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", veuillez regarder la documentation..!");
+                }
+                if (!repartition6[0].equals(table1Alias) && !repartition6[0].equals(table2Alias))    {
+                    throw new IOException("Erreur yy : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", Pensez à garder le même alias pour la table durant toute la requête.");
+                }
+                String indexAndType2 = null;
+                if (repartition6[0].equals(table1Alias))
+                    indexAndType2 = table1.getIndexAndTypeOfAttribute(repartition6[1].toLowerCase());
+                else 
+                    indexAndType2 = table2.getIndexAndTypeOfAttribute(repartition6[1].toLowerCase());
+
+                if (repartition6[0].equals(table1Alias))    {
+                    String aux = indexAndType;
+                    indexAndType = indexAndType2;
+                    indexAndType2 = aux;
+                }                
+
+                indexsConditions.add(Integer.parseInt(indexAndType.split(";")[0]));
+                Condition condition = new Condition("", Integer.parseInt(indexAndType2.split(";")[0]), operateur, indexAndType2.split(";")[1]);
+                conditions.add(condition);
+            }   else if (!repartition4[i].toUpperCase().equals("AND"))  {
+                throw new IOException("Erreur : le seul operateur possible entre les conditions est l'opérateur logique de conjenction AND !");
+            }
+        }
+
+        PageDirectoryIterator table1IteratorDataPages = new PageDirectoryIterator(table1);
+        PageDirectoryIterator table2IteratorDataPages = new PageDirectoryIterator(table2);
+        ArrayList<Record> records = new ArrayList<>();
+        PageId dataPageTable1 = null;
+
+        
+        while ((dataPageTable1=table1IteratorDataPages.GetNextDataPageId()) != null)     {
+            DataPageHoldRecordIterator table1IteratorRecords = new DataPageHoldRecordIterator(dataPageTable1, table1);
+            Record table1ActualRecord = null;
+            while ((table1ActualRecord=table1IteratorRecords.getNextRecord()) != null)  {
+                int x=0;
+                for (Condition condition: conditions)   {
+                    int index = indexsConditions.get(x); x+=1;
+                    String valeurConstante = table1ActualRecord.getAttributs()[index];
+                    condition.setValeurConstante(valeurConstante);
+                }
+                ArrayList<Integer> proj = new ArrayList<>(); 
+                for (int i=0; i<table2.getNbColonnes(); i+=1)   
+                    proj.add(i);
+                RecordPrinter recordPrinter = new RecordPrinter(table2, conditions, proj); 
+                ArrayList<Record> recordsTemporaires = recordPrinter.loadRecords();
+                if (recordsTemporaires.size()!=0)   {
+                    for (int j=0 ; j<recordsTemporaires.size(); j+=1)   {
+                        String [] attributsRecord = new String[table1.getNbColonnes() + table2.getNbColonnes()];
+                        for (int i=0; i<attributsRecord.length; i+=1)   {
+                            if (i<table1.getNbColonnes())   {
+                                attributsRecord[i] = table1ActualRecord.getAttributs()[i];
+                            }   else {
+                                attributsRecord[i] = recordsTemporaires.get(j).getAttributs()[i-table1.getNbColonnes()];
+                            }
+                        }
+                        records.add(new Record(attributsRecord));
+                    }
+                }                
+            }
+            table1IteratorRecords.close();
+        }
+
+        for (int i=0 ; i<table1.getNbColonnes() + table2.getNbColonnes() ; i+=1)   {
+            if (i<table1.getNbColonnes()) {
+                System.out.print(table1.getColonnes()[i].getNom()  +  " , ");
+            }   else {
+                System.out.print(table2.getColonnes()[i-table1.getNbColonnes()].getNom()  +  ((i!=table1.getNbColonnes() + table2.getNbColonnes()-1) ? " , " : " .\n"));
+            }
+        }
+        for (Record record : records) {
+            System.out.println(record);
+        }
+        System.out.println("Total Records = " + records.size());
+
+
+
+
+    }
+
+
     public static void main (String [] args)    {
-        DBConfig config = DBConfig.loadDBConfig("src/config.json");
+        DBConfig config = DBConfig.loadDBConfig("config.json");
         SGBD mySGBD = new SGBD (config);
         mySGBD.Run();
     }

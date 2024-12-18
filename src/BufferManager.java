@@ -158,7 +158,7 @@ public class BufferManager {
             if (bufferCorrespondantPage.getFlagDirty()==false)
                 bufferCorrespondantPage.setFlagDirty(flagDirty);
             bufferCorrespondantPage.decrementerPinCount();
-            //this.dbConfig = dbConfig.loadDBConfig("src/config.json");
+            //this.dbConfig = dbConfig.loadDBConfig("config.json");
         }  
         // if (flagDirty){
         //     this.flushBuffers();

@@ -8,7 +8,7 @@ public class BufferManagerTests {
 
         try {
             // Creer une configuration de base de données
-            DBConfig dbconfig = DBConfig.loadDBConfig("src/config.json");
+            DBConfig dbconfig = DBConfig.loadDBConfig("config.json");
             if (dbconfig == null)     {
                 System.err.println("Erreur lors du chargement de la configuration de la BDD.");
                 return ;

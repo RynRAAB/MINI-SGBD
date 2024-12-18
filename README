@@ -1,0 +1,35 @@
+# Manuel d'éxécution du mini SGDB
+
+Dans ce guide, il est expliquer comment exécuter le programme directement
+sur un terminal.
+
+Il faudra s'assurer que vous êtes placer à la racine du projet : **Projet_BDDA**
+
+---
+
+## Pré-requis (à ne pas négliger !)
+
+Juste avant de lancer le script, il faudra vous assurez de l'état des éléments suivants :
+
+### 1. Système d'exploitation
+
+Ce script n'est compatible que sur Windows, et ses systèmes associer.
+
+### 2. Version de Java
+
+Assurez-vous que Java est bien installé sur votre machine, et qu'il possède une version plutôt récente (au minimum un JDK de 2017)
+Pour verifier la version de Java que vous possédez, vous pouvez taper cette commande :
+
+java -version
+
+### Mode d'exécution du programme
+
+L'exécution principale du script se fera avec le fichier config.json :
+
+#### 1. Exécution avec le fichier de configuration par défaut
+
+Le programme que nous avons conçu utilise automatiquement le fichier config.json
+
+Commande : 
+
+./run.bat

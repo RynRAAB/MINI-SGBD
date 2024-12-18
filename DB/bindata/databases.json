@@ -1,32 +1,87 @@
-{"dataBases": {"UNIVERSITE": {
-    "tables": {"ETUDIANT": {
-        "numberOfColumns": 4,
-        "columns": [
-            {
-                "size": 20,
-                "name": "nom",
-                "type": "VARCHAR"
-            },
-            {
-                "size": 20,
-                "name": "prenom",
-                "type": "VARCHAR"
-            },
-            {
-                "size": 1,
-                "name": "age",
-                "type": "INT"
-            },
-            {
-                "size": 1,
-                "name": "note",
-                "type": "REAL"
+{"dataBases": {"ETUDIANT": {
+    "tables": {
+        "ETUDIANT": {
+            "numberOfColumns": 4,
+            "columns": [
+                {
+                    "size": 20,
+                    "name": "nom",
+                    "type": "VARCHAR"
+                },
+                {
+                    "size": 20,
+                    "name": "prenom",
+                    "type": "VARCHAR"
+                },
+                {
+                    "size": 1,
+                    "name": "age",
+                    "type": "INT"
+                },
+                {
+                    "size": 1,
+                    "name": "note",
+                    "type": "REAL"
+                }
+            ],
+            "headerPageId": {
+                "pageIdx": 0,
+                "fileIdx": 0
             }
-        ],
-        "headerPageId": {
-            "pageIdx": 0,
-            "fileIdx": 0
+        },
+        "TEST": {
+            "numberOfColumns": 2,
+            "columns": [
+                {
+                    "size": 2,
+                    "name": "c1",
+                    "type": "CHAR"
+                },
+                {
+                    "size": 5,
+                    "name": "c2",
+                    "type": "VARCHAR"
+                }
+            ],
+            "headerPageId": {
+                "pageIdx": 2,
+                "fileIdx": 0
+            }
+        },
+        "CHIFFRESSECRETS": {
+            "numberOfColumns": 5,
+            "columns": [
+                {
+                    "size": 1,
+                    "name": "c1",
+                    "type": "INT"
+                },
+                {
+                    "size": 1,
+                    "name": "c2",
+                    "type": "REAL"
+                },
+                {
+                    "size": 1,
+                    "name": "c3",
+                    "type": "INT"
+                },
+                {
+                    "size": 1,
+                    "name": "c4",
+                    "type": "INT"
+                },
+                {
+                    "size": 1,
+                    "name": "c5",
+                    "type": "INT"
+                }
+            ],
+            "headerPageId": {
+                "pageIdx": 1,
+                "fileIdx": 10
+            }
         }
-    }},
-    "numberOfTables": 1
+    },
+    "numberOfTables": 3
 }}}

@@ -321,9 +321,9 @@ public class Relation {
             int fileIdx = bufferHeaderPage.getInt(pageOffset);
             int pageIdx = bufferHeaderPage.getInt(pageOffset + 4);
             int availableSpace = bufferHeaderPage.getInt(pageOffset + 8);
-            if (availableSpace >= sizeRecord+8) {
+            if (availableSpace >= sizeRecord+16) {
                 freeDataPage = new PageId(fileIdx, pageIdx);
-                bufferHeaderPage.putInt(pageOffset+8, availableSpace-sizeRecord-8);
+                bufferHeaderPage.putInt(pageOffset+8, availableSpace-sizeRecord-16);
                 break ;
             }
         }

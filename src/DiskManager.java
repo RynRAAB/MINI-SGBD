@@ -30,7 +30,7 @@ public class DiskManager implements Serializable{
         this.dbconfig = dbconfig;
         this.pagesLibres = new ArrayList<>();
         this.fichierCourant = null;
-        this.indexFichierActuel = -1;
+        this.indexFichierActuel = 0;
         this.indexPageActuelle = -1;
     }
 
@@ -183,6 +183,11 @@ public class DiskManager implements Serializable{
         try{
             String cheminFichier = this.dbconfig.getDbPath() + "/dm.json";
             File monFichier = new File (cheminFichier);
+            if (!monFichier.exists())   {
+                File mkdir0 = new File(this.dbconfig.getDbPath());
+                if (!mkdir0.exists()) mkdir0.mkdir();
+                monFichier.createNewFile();
+            }
             FileWriter fw = new FileWriter(monFichier);
             fw.write(etat.toString());
             fw.flush();

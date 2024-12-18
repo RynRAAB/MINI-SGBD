@@ -8,7 +8,7 @@ public class RelationTests {
     public static void main (String [] args)    {  
         System.out.println("**********  Initialisation de tout le programme  **********");
 
-        DBConfig config = DBConfig.loadDBConfig("src/config.json");
+        DBConfig config = DBConfig.loadDBConfig("config.json");
         DiskManager disk = new DiskManager(config);
         disk.loadState();
         BufferManager buffer = new BufferManager(config, disk);

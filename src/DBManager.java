@@ -196,6 +196,13 @@ public class DBManager {
         String path = this.dbconfig.getDbPath() + "/bindata/databases.json";
         try     {
             File file = new File(path);
+            if (!file.exists()) {
+                File mkdir0 = new File(this.dbconfig.getDbPath());
+                File mkdir1 = new File(this.dbconfig.getDbPath() + "/bindata");
+                if (!mkdir0.exists())   mkdir0.mkdir();
+                if (!mkdir1.exists())   mkdir1.mkdir();
+                file.createNewFile();
+            }
             JSONObject root = new JSONObject();
             JSONObject dataBasesJson = new JSONObject();
             root.put("dataBases", dataBasesJson);

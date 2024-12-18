@@ -6,7 +6,7 @@ public class DiskManagerTests {
         
         try {
             // Charger la configuration depuis le fichier JSON
-            DBConfig config = DBConfig.loadDBConfig("src/config.json");
+            DBConfig config = DBConfig.loadDBConfig("config.json");
             if (config == null) {
                 System.err.println("Erreur lors du chargement de la configuration.");
                 return;

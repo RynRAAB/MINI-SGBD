@@ -71,4 +71,12 @@ public class Condition {
         return this.indexColonne;
     }
 
+    public String getValeurConstante()  {
+        return this.valeurConstante;
+    }
+
+    public void setValeurConstante(String valeur)   {
+        this.valeurConstante = valeur;
+    }
+
 }
