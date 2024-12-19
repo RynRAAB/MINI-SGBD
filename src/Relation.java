@@ -250,6 +250,9 @@ public class Relation {
         }  catch(IOException e) {
             e.printStackTrace();
         }
+        if (bufferHeaderPage==null)   {
+            bufferHeaderPage = new MyBuffer(this.headerPageId, this.diskManager.getDBConfig().getPageSize(), this.bufferManager.getTimeCount());
+        }
         bufferHeaderPage.position(0);
         bufferHeaderPage.putInt(0);
         this.bufferManager.freePage(this.headerPageId, true);
@@ -321,9 +324,9 @@ public class Relation {
             int fileIdx = bufferHeaderPage.getInt(pageOffset);
             int pageIdx = bufferHeaderPage.getInt(pageOffset + 4);
             int availableSpace = bufferHeaderPage.getInt(pageOffset + 8);
-            if (availableSpace >= sizeRecord+16) {
+            if (availableSpace >= sizeRecord+8) {
                 freeDataPage = new PageId(fileIdx, pageIdx);
-                bufferHeaderPage.putInt(pageOffset+8, availableSpace-sizeRecord-16);
+                bufferHeaderPage.putInt(pageOffset+8, availableSpace-sizeRecord-8);
                 break ;
             }
         }
@@ -390,10 +393,10 @@ public class Relation {
                     recordSize += Double.BYTES;
                     break ;
                 case "CHAR" :
-                    recordSize += (Character.BYTES * c.getTaille());
+                    recordSize += (Integer.BYTES * c.getTaille());
                     break ;
                 case "VARCHAR" :
-                    recordSize += (Character.BYTES * c.getTaille());
+                    recordSize += (Integer.BYTES * c.getTaille());
                     break; 
             }
             index+=1;

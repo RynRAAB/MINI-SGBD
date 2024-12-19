@@ -44,7 +44,6 @@ public class RelationScanner implements IRecordIterator {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         if (bufferDataPage == null){
             bufferDataPage = new MyBuffer(pageCourante, relationCourante.getDiskManager().getDBConfig().getPageSize(), relationCourante.getBufferManager().getTimeCount());
         }
@@ -75,5 +74,4 @@ public class RelationScanner implements IRecordIterator {
         indexRecordCourant = 0;
         pageCourante = dataPages.get(0);
     }
-
 }

@@ -451,15 +451,27 @@ public class SGBD {
                     if (operateur.equals(""))  {
                         throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", les seuls opérateurs autorisés sont :  =  !=  <  >  <=  >=");
                     }
+
                     String [] repartition5 = conditionString.split(operateur);
                     if (repartition5.length!=2) {
                         throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", veuillez regarder la documentation..!");
                     }
-                    if (repartition5[1].contains(".") && !repartition5[1].contains("."))  {
-                        String aux = repartition5[0];
-                        repartition5[0] = repartition5[1];
-                        repartition5[1] = aux;
+                    String leftPart = repartition5[0].trim(); 
+                    String rightPart = repartition5[1].trim();
+
+                    // Déterminer si une inversion est nécessaire
+                    boolean leftIsColumn = leftPart.contains(".") && !this.isDouble(leftPart);
+                    boolean rightIsColumn = rightPart.contains(".") && !isDouble(rightPart);
+
+                    boolean shouldInvert = !leftIsColumn && rightIsColumn;
+
+                    // Si nécessaire, inverser la condition
+                    if (shouldInvert) {
+                        repartition5[0] = rightPart ;
+                        repartition5[1] = leftPart;
+                        operateur = Operateur.inverseOperateur(operateur);
                     }
+
                     String [] repartition6 = repartition5[0].toUpperCase().split("\\.");
                     if (repartition6.length!=2)   {
                         throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", veuillez regarder la documentation..!");
@@ -469,9 +481,13 @@ public class SGBD {
                     }
                     String indexAndType = table.getIndexAndTypeOfAttribute(repartition6[1].toLowerCase());
                     String valeurConstante = repartition5[1];
-                    if (indexAndType.endsWith("CHAR") || indexAndType.endsWith("VARCHAR"))  {
+
+                    if (valeurConstante.split("\\.")[0].equalsIgnoreCase(tableAlias)) {
+                        String indexAndType2 = table.getIndexAndTypeOfAttribute(valeurConstante.split("\\.")[1].toLowerCase());
+                        valeurConstante="#.##.#"+indexAndType2.split(";")[0];
+                    }   else if (indexAndType.endsWith("CHAR") || indexAndType.endsWith("VARCHAR"))  {
                         if (!(valeurConstante.startsWith("\"") && valeurConstante.endsWith("\"")))  {
-                            throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", Pensez à mettre les constantes CHAR et VARCHAR entre guillemets \"constante\".");
+                            throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", Pensez à mettre les constantes CHAR et VARCHAR entre guillemets \""+valeurConstante+"\".");
                         }
                         valeurConstante = valeurConstante.substring(1,valeurConstante.length()-1);
                     }   else if (indexAndType.endsWith("INT"))  {
@@ -487,6 +503,8 @@ public class SGBD {
                                 throw new IOException("Erreur : Erreur de syntaxe dans la commande SELECT dans la partie \"" + conditionString + "\", Pensez à lire la documentation.");
                         }
                     }
+
+                    
                     try{Integer.parseInt(indexAndType.split(";")[0]);} catch(NumberFormatException e){throw new IOException("Erreur de syntaxe : l'attribut " + repartition6[1] + " n'existe pas dans la table (" + tableName + ") !");}
                     Condition condition = new Condition(valeurConstante,   Integer.parseInt(indexAndType.split(";")[0]) , operateur, indexAndType.split(";")[1]);
                     conditions.add(condition);
@@ -500,6 +518,18 @@ public class SGBD {
         RecordPrinter recordPrinter = new RecordPrinter(table, conditions, projectionIndexs); 
 
         recordPrinter.printRecords();
+    }
+
+    public boolean isDouble(String str) {
+        if (str == null || str.isEmpty()) {
+            return false; // Une chaîne nulle ou vide ne peut pas être un double
+        }
+        try {
+            Double.parseDouble(str);
+            return true; // La conversion a réussi, c'est un double
+        } catch (NumberFormatException e) {
+            return false; // La conversion a échoué, ce n'est pas un double
+        }
     }
 
 

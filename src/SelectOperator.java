@@ -32,9 +32,24 @@ public class SelectOperator implements IRecordIterator  {
         if (record == null) {
             return record;
         }
+        boolean isUsingThisLoop = false;
+        String aux = null;
         for (Condition condition : conditions)  {
-            if (!condition.evaluate(record.getAttributs()[condition.getIndexColonne()]))
+            isUsingThisLoop = false;
+            if (condition.getValeurConstante().startsWith("#.##.#"))    {
+                aux = condition.getValeurConstante();
+                int index = Integer.parseInt(condition.getValeurConstante().substring(6));
+                condition.setValeurConstante(record.getAttributs()[index]);
+                isUsingThisLoop=true;
+            }
+            if (!condition.evaluate(record.getAttributs()[condition.getIndexColonne()])){
+                if (isUsingThisLoop)    {
+                    condition.setValeurConstante(aux);
+                }
                 return new Record(new String[0]);
+            }
+            if (isUsingThisLoop)
+                condition.setValeurConstante(aux);
         }
         return record;
     }

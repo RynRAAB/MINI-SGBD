@@ -24,4 +24,14 @@ public static Operateur opeString(String operation) {
             throw new IllegalArgumentException("opeString : L'opérateur n'a pas été trouvé " + operation + ", les seuls opérateurs possibles sont les suivants :  =  !=  <  >  <=  >=");
     }
 }
+
+public static String inverseOperateur(String operateur) {
+    switch (operateur) {
+        case "<": return ">";
+        case ">": return "<";
+        case "<=": return ">=";
+        case ">=": return "<=";
+        default: return operateur; 
+    }
+}
 }

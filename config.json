@@ -1,7 +1,7 @@
 {
   "dbpath": "./DB",
-  "pageSize": 20480,
-  "dm_maxFileSize" : 81920,
-  "bm_bufferCount" : 2,
-  "bm_policy" : "LRU"
+  "pageSize": 13010,
+  "dm_maxFileSize" : 16700,
+  "bm_bufferCount" : 1,
+  "bm_policy" : "MRU"
 }
